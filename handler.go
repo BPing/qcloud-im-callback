@@ -11,13 +11,15 @@ type CallbackHandle func(*CallbackEvent) interface{}
 //   为某个的事件注册相应的事件处理程序
 //
 type CallbackHandler struct {
-	//
+	// 事件处理路由，CallbackCommand对应的的处理方式
 	Router map[CallbackCommand]RouterInfo
 
-	//
+	// 默认的处理程序
+	// 当Router里面没有注册的理由存在时候，
+	// 将默认使用本程序处理事件
 	defaultHandle CallbackHandle
 
-	//
+	//生产/消费 消费异步事件
 	producerConsumer *producerConsumer.Container
 }
 
@@ -82,7 +84,7 @@ func (ch *CallbackHandler) RegisterDefaultHandle(callbackHandle CallbackHandle)*
 	return ch
 }
 
-// 注销
+// 注销事件处理路由信息
 func (ch *CallbackHandler) UnRegister(cc CallbackCommand) *CallbackHandler {
 	delete(ch.Router, cc)
 	return ch
@@ -94,7 +96,7 @@ func (ch *CallbackHandler) Exist(cc CallbackCommand) bool {
 	return ok
 }
 
-// 获取
+// 获取事件处理理由信息
 func (ch *CallbackHandler) Get(cc CallbackCommand) (RouterInfo, bool) {
 	ri, ok := ch.Router[cc]
 	return ri, ok
@@ -122,7 +124,7 @@ func (ch *CallbackHandler) Handle(ce *CallbackEvent) interface{} {
 	return ch.defaultHandle(ce)
 }
 
-//
+// producerConsumer消费事件时调用处理事件
 func (ch *CallbackHandler) handle(ce *CallbackEvent) {
 	ri, ok := ch.Get(ce.CallbackCommand)
 	if ok && ri.Async {
