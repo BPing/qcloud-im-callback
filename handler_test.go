@@ -52,6 +52,5 @@ func TestHandler(t *testing.T){
 	if !ok ||resp.ActionStatus!=FAILStatus{
 		t.Fatal(ok,CallbackAfterSendMsgCommand,"handle fail")
 	}
-
 	time.Sleep(time.Second)
 }
