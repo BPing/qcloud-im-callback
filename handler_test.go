@@ -10,7 +10,7 @@ func TestHandler(t *testing.T){
 	defaultHandle:=func(event *CallbackEvent)interface{}{
                return &BaseResponse{ActionStatus:OkStatus,ErrorCode:0}
 	}
-	callbackHandler,_:=NewCallbackHandler(1,30,CallbackHandle(defaultHandle))
+	callbackHandler,_:=NewCallbackHandler(0,30,CallbackHandle(defaultHandle))
 
 	// 注册
 	CallbackBeforeSendMsgHandle:=func(event *CallbackEvent)interface{}{
@@ -52,5 +52,47 @@ func TestHandler(t *testing.T){
 	if !ok ||resp.ActionStatus!=FAILStatus{
 		t.Fatal(ok,CallbackAfterSendMsgCommand,"handle fail")
 	}
+
+        // 没有注册
+	resp,ok=callbackHandler.NewCallbackEvent(CallbackBeforeCreateGroupCommand,up,nil).Handle().(*BaseResponse)
+	if !ok ||resp.ActionStatus!=OkStatus{
+		t.Fatal(ok,CallbackBeforeCreateGroupCommand,"handle fail")
+	}
+
+
+	//RegisterDefaultHandle
+
+	callbackHandler.RegisterDefaultHandle(CallbackHandle(func(event *CallbackEvent)interface{}{
+		return &BaseResponse{ActionStatus:FAILStatus,ErrorCode:0}
+	}))
+
+	resp,ok=callbackHandler.NewCallbackEvent(CallbackBeforeCreateGroupCommand,up,nil).Handle().(*BaseResponse)
+	if !ok ||resp.ActionStatus!=FAILStatus{
+		t.Fatal(ok,CallbackBeforeCreateGroupCommand,"handle fail")
+	}
+
+	//Exist and   UnRegister
+
+	if !callbackHandler.Exist(CallbackBeforeSendMsgCommand){
+		t.Fatal(ok,CallbackBeforeSendMsgCommand,"Exist  fail")
+	}
+
+	callbackHandler.UnRegister(CallbackBeforeSendMsgCommand)
+
+	if callbackHandler.Exist(CallbackBeforeSendMsgCommand){
+		t.Fatal(ok,CallbackBeforeSendMsgCommand,"UnRegister Exist  fail")
+	}
+
+	resp,ok=callbackHandler.NewCallbackEvent(CallbackBeforeSendMsgCommand,up,[]byte(str)).Handle().(*BaseResponse)
+	if !ok ||resp.ActionStatus!=FAILStatus{
+		t.Fatal(ok,CallbackBeforeSendMsgCommand,"handle fail")
+	}
+
+	_,err:=NewCallbackHandler(0,-1,CallbackHandle(defaultHandle))
+
+	if nil==err{
+		t.Fatal("test NewCallbackHandler fail")
+	}
+
 	time.Sleep(time.Second)
 }
