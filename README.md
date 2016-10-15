@@ -47,7 +47,7 @@
 
 # 文档
 
-https://godoc.org/github.com/BPing/qcloud-im-callback[![GoDoc](https://godoc.org/github.com/BPing/qcloud-im-callback?status.svg)](https://godoc.org/github.com/BPing/qcloud-im-callback)
+https://godoc.org/github.com/BPing/qcloud-im-callback [![GoDoc](https://godoc.org/github.com/BPing/qcloud-im-callback?status.svg)](https://godoc.org/github.com/BPing/qcloud-im-callback)
 
 # 依赖包
   github.com/BPing/Golib/producer_consumer
