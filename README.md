@@ -57,7 +57,7 @@ func main(){
     // @chanLen   消费信息（事件）队列长度
     qcloud_im_callback.RegisterDefaultCallbackHandler(masterNum,msgEventLen int,defaultHandle func(*CallbackEvent) interface{})
 ```
-* 注册事件。具体事件查看文件type.go
+* 注册事件处理路由信息（处理程序）。具体事件类型查看文件type.go
 ```go
    CallbackBeforeSendMsgHandle:=func(event *qcloud_im_callback.CallbackEvent)interface{}{
    		var sendMsgBody qcloud_im_callback.SendMsgBody
