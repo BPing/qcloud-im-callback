@@ -5,8 +5,7 @@
 # 快速开始
 
 ```go
-
-   package main
+package main
 
 import (
 	"fmt"
@@ -14,7 +13,6 @@ import (
 )
 
 func main(){
-
 	CallbackBeforeSendMsgHandle:=func(event *qcloud_im_callback.CallbackEvent)interface{}{
 		var sendMsgBody qcloud_im_callback.SendMsgBody
 		event.ToJSON(&sendMsgBody)
@@ -41,13 +39,64 @@ func main(){
 	// json格式
 	str:=`{"CallbackCommand": "C2C.CallbackBeforeSendMsg", "From_Account": "jared", "To_Account": "Jonh", "MsgBody": [ {"MsgType": "TIMTextElem","MsgContent": {"Text": "red packet"}}]}`
 
-	resp:=qcloud_im_callback.HandleEvents(up.CallbackCommand,up,[]byte(str))
+	resp:=qcloud_im_callback.HandleEvents(qcloud_im_callback.CreateEvents(up.CallbackCommand,up,[]byte(str)))
 
 	// 自行处理返回内容
 	fmt.Println(*resp.(*qcloud_im_callback.BaseResponse))
 }
 	
 ```
+
+# 详细
+
+>**Note:** 使用前，记得初始化类库和注册各种事件处理程序
+
+* 更改默认CallbackHandler
+```go
+    // @masterNum 主消费线程数目,必须大于等于1
+    // @chanLen   消费信息（事件）队列长度
+    qcloud_im_callback.RegisterDefaultCallbackHandler(masterNum,msgEventLen int,defaultHandle func(*CallbackEvent) interface{})
+```
+* 注册事件。具体事件查看文件type.go
+```go
+   CallbackBeforeSendMsgHandle:=func(event *qcloud_im_callback.CallbackEvent)interface{}{
+   		var sendMsgBody qcloud_im_callback.SendMsgBody
+   		event.ToJSON(&sendMsgBody)
+   		fmt.Println("CallbackBeforeSendMsgHandle",sendMsgBody.MsgBody)
+   		return &qcloud_im_callback.BaseResponse{ActionStatus:qcloud_im_callback.OkStatus,ErrorCode:0}
+   	}
+   
+   	// 注册
+   	qcloud_im_callback.RegisterRouterInfo(qcloud_im_callback.CallbackBeforeSendMsgCommand,qcloud_im_callback.RouterInfo{
+   		Async:false,
+   		Handle:qcloud_im_callback.CallbackHandle(CallbackBeforeSendMsgHandle),
+   
+   	})
+```
+
+### http
+已提供了标准http调用处理函数了，可以直接调用，如下：
+```go
+    http.HandleFunc("/im/callback",qcloud_im_callback.HandleEventsHttp)
+```
+
+### beego
+因为不想耦合beego,所以就不提供beego定制化接口了。可以参考下面例子：
+```go
+    func (u *Controller) HandleEventsBeego() {
+    	up:=URLParams{
+    		SdkAppid:u.GetString("SdkAppid"),
+    		CallbackCommand:CallbackCommand(u.GetString("CallbackCommand")),
+    		ContentType:u.GetString("contenttype"),
+    		ClientIP:u.GetString("ClientIP"),
+    		OptPlatform:OptPlatform(u.GetString("OptPlatform")),
+    	}
+    	resp:=HandleEvents(CreateEvents(up.CallbackCommand,up,u.Ctx.Input.RequestBody))
+    	u.Data["json"] = resp
+    	u.ServeJSON()
+    }
+```
+
 
 # 文档
 

@@ -8,7 +8,6 @@ import (
 )
 
 var (
-
 	BodyMaxLen int64=2048 //请求body实体内容限制长度值
 )
 
@@ -17,14 +16,12 @@ var (
 //   用户可以通过RegisterDefaultCallbackHandler重新替换默认句柄的
 var defaultCallbackHandler *CallbackHandler
 
-
 func init(){
 	defaultHandle:=func(event *CallbackEvent)interface{}{
 		return &BaseResponse{ActionStatus:OkStatus,ErrorCode:0}
 	}
 	RegisterDefaultCallbackHandler(1,50,defaultHandle)
 }
-
 
 func RegisterDefaultCallbackHandler(masterNum,msgEventLen int,defaultHandle func(*CallbackEvent) interface{})(err error){
 	temp,err:=NewCallbackHandler(masterNum,msgEventLen,CallbackHandle(defaultHandle))
@@ -38,11 +35,18 @@ func RegisterRouterInfo(cc CallbackCommand, ri RouterInfo){
 	defaultCallbackHandler.Register(cc,ri)
 }
 
-
-func HandleEvents(cc CallbackCommand, up URLParams, body []byte)interface{}{
+func Handle(cc CallbackCommand, up URLParams, body []byte)interface{}{
         return defaultCallbackHandler.NewCallbackEvent(cc,up,body).Handle()
 }
 
+func CreateEvents(cc CallbackCommand, up URLParams, body []byte)*CallbackEvent{
+	return defaultCallbackHandler.NewCallbackEvent(cc,up,body)
+}
+
+func HandleEvents(event *CallbackEvent)interface{}{
+	return event.Handle()
+
+}
 
 // for std（raw） http
 //----------------------------------------------------------------------------------------------------------------------
@@ -59,7 +63,7 @@ func HandleEventsHttp(w http.ResponseWriter, r *http.Request){
 		ClientIP:getParam("ClientIP",r),
 		OptPlatform:OptPlatform(getParam("OptPlatform",r)),
 	}
-	resp:=HandleEvents(up.CallbackCommand,up,readBody(r))
+	resp:=HandleEvents(CreateEvents(up.CallbackCommand,up,readBody(r)))
 	data,_:=json.Marshal(resp)
 	w.Write(data)
 }
@@ -93,7 +97,7 @@ func readBody(r *http.Request)[]byte{
 //		ClientIP:u.GetString("ClientIP"),
 //		OptPlatform:OptPlatform(u.GetString("OptPlatform")),
 //	}
-//	resp:=models.CallbackHandler.NewCallbackEvent(up.CallbackCommand,up,u.Ctx.Input.RequestBody).Handle()
+//	resp:=HandleEvents(CreateEvents(up.CallbackCommand,up,u.Ctx.Input.RequestBody))
 //	u.Data["json"] = resp
 //	u.ServeJSON()
 //}
