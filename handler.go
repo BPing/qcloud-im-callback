@@ -12,7 +12,7 @@ type CallbackHandle func(*CallbackEvent) interface{}
 //
 type CallbackHandler struct {
 	// 事件处理路由，CallbackCommand对应的的处理方式
-	Router map[CallbackCommand]RouterInfo
+	router map[CallbackCommand]RouterInfo
 
 	// 默认的处理程序
 	// 当Router里面没有注册的理由存在时候，
@@ -41,7 +41,7 @@ type RouterInfo struct {
 
 // 新建回调事件处理句柄
 func NewCallbackHandler(masterNum,msgEventLen int,defaultHandle CallbackHandle)(*CallbackHandler,error){
-	ch:=&CallbackHandler{Router:make(map[CallbackCommand]RouterInfo),defaultHandle:defaultHandle}
+	ch:=&CallbackHandler{router:make(map[CallbackCommand]RouterInfo),defaultHandle:defaultHandle}
 	err:=ch.InitProducerConsumer(masterNum,msgEventLen)
 	return ch,err
 }
@@ -74,7 +74,7 @@ func (ch *CallbackHandler) InitProducerConsumer(masterNum,msgEventLen int)error{
 // 注册
 //   如果重复注册，新的将覆盖旧的
 func (ch *CallbackHandler) Register(cc CallbackCommand, ri RouterInfo) *CallbackHandler {
-	ch.Router[cc] = ri
+	ch.router[cc] = ri
 	return ch
 }
 
@@ -86,19 +86,19 @@ func (ch *CallbackHandler) RegisterDefaultHandle(callbackHandle CallbackHandle)*
 
 // 注销事件处理路由信息
 func (ch *CallbackHandler) UnRegister(cc CallbackCommand) *CallbackHandler {
-	delete(ch.Router, cc)
+	delete(ch.router, cc)
 	return ch
 }
 
 // 是否已注册
 func (ch *CallbackHandler) Exist(cc CallbackCommand) bool {
-	_, ok := ch.Router[cc]
+	_, ok := ch.router[cc]
 	return ok
 }
 
-// 获取事件处理理由信息
+// 获取事件处理路由信息
 func (ch *CallbackHandler) Get(cc CallbackCommand) (RouterInfo, bool) {
-	ri, ok := ch.Router[cc]
+	ri, ok := ch.router[cc]
 	return ri, ok
 }
 
