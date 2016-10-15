@@ -9,7 +9,7 @@ import (
 
 var (
 
-	BodyMaxLen=2048 //请求body实体内容限制长度值
+	BodyMaxLen int64=2048 //请求body实体内容限制长度值
 )
 
 // 默认的
