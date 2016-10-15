@@ -47,7 +47,16 @@ func TestFacade(t *testing.T){
 	resp=Handle(CallbackAfterSendMsgCommand,up,[]byte(str))
 
 	if resp.(*BaseResponse).ActionStatus!=OkStatus{
-		t.Fatal("test facade Handle")
+		t.Fatal("test facade default Handle")
 	}
 
+	RegisterDefaultHandle(func(event *CallbackEvent)interface{}{
+		return &BaseResponse{ActionStatus:FAILStatus,ErrorCode:0}
+	})
+
+	resp=Handle(CallbackAfterSendMsgCommand,up,[]byte(str))
+
+	if resp.(*BaseResponse).ActionStatus!=FAILStatus{
+		t.Fatal("test facade RegisterDefaultHandle")
+	}
 }

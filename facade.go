@@ -31,6 +31,10 @@ func RegisterDefaultCallbackHandler(masterNum,msgEventLen int,defaultHandle func
 	return
 }
 
+func RegisterDefaultHandle(defaultHandle func(*CallbackEvent) interface{}){
+         defaultCallbackHandler.RegisterDefaultHandle(CallbackHandle(defaultHandle))
+}
+
 func RegisterRouterInfo(cc CallbackCommand, ri RouterInfo){
 	defaultCallbackHandler.Register(cc,ri)
 }
@@ -53,7 +57,7 @@ func HandleEvents(event *CallbackEvent)interface{}{
 
 // 原始http请求处理
 //    对于body内容目前做长度限制，具体查看变量BodyMaxLen
-//
+//   TODO：参数校验
 func HandleEventsHttp(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	up:=URLParams{
