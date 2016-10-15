@@ -43,5 +43,11 @@ func TestFacade(t *testing.T){
 	if resp.(*BaseResponse).ActionStatus!=OkStatus{
 		t.Fatal("test facade Handle")
 	}
+	
+	resp=Handle(CallbackAfterSendMsgCommand,up,[]byte(str))
+
+	if resp.(*BaseResponse).ActionStatus!=OkStatus{
+		t.Fatal("test facade Handle")
+	}
 
 }
