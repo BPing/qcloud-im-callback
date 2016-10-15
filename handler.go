@@ -1,8 +1,7 @@
 package qcloud_im_callback
 
-import (
-	"github.com/Bping/Golib/producer_consumer"
-)
+import "github.com/BPing/Golib/producer_consumer"
+
 
 // 具体事件处理程序
 type CallbackHandle func(*CallbackEvent) interface{}
