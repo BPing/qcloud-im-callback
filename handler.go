@@ -1,6 +1,9 @@
 package qcloud_im_callback
 
-import "github.com/BPing/Golib/producer_consumer"
+import (
+	"github.com/BPing/Golib/producer_consumer"
+
+)
 
 
 // 具体事件处理程序
@@ -18,6 +21,11 @@ type CallbackHandler struct {
 	// 当Router里面没有注册的理由存在时候，
 	// 将默认使用本程序处理事件
 	defaultHandle CallbackHandle
+
+	// 开始处理事件之前的钩子
+	//  如果返回数据不为nil，代表结束处理事件，
+	//  否则，继续处理事件
+	beforeHook  CallbackHandle
 
 	//生产/消费 消费异步事件
 	producerConsumer *producerConsumer.Container
@@ -84,6 +92,12 @@ func (ch *CallbackHandler) RegisterDefaultHandle(callbackHandle CallbackHandle)*
 	return ch
 }
 
+// 注册钩子
+func (ch *CallbackHandler) RegisterBeforeHook(beforeHook CallbackHandle)*CallbackHandler {
+	ch.beforeHook = beforeHook
+	return ch
+}
+
 // 注销事件处理路由信息
 func (ch *CallbackHandler) UnRegister(cc CallbackCommand) *CallbackHandler {
 	delete(ch.router, cc)
@@ -104,6 +118,13 @@ func (ch *CallbackHandler) Get(cc CallbackCommand) (RouterInfo, bool) {
 
 // 处理事件
 func (ch *CallbackHandler) Handle(ce *CallbackEvent) interface{} {
+	if ch.beforeHook!=nil {
+		hr:=ch.beforeHook(ce)
+		if nil!=hr {
+			// 如果钩子有返回数据则代表结束
+			return hr
+		}
+	}
 	ri, ok := ch.Get(ce.CallbackCommand)
 	if ok {
 		if ri.Async {

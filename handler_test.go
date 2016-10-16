@@ -94,5 +94,25 @@ func TestHandler(t *testing.T){
 		t.Fatal("test NewCallbackHandler fail")
 	}
 
+	beforeHook:=func(event *CallbackEvent)interface{}{
+		return &BaseResponse{ActionStatus:OkStatus,ErrorCode:-1}
+	}
+	callbackHandler.RegisterBeforeHook(CallbackHandle(beforeHook))
+
+	resp,ok=callbackHandler.NewCallbackEvent(CallbackBeforeSendMsgCommand,up,[]byte(str)).Handle().(*BaseResponse)
+	if !ok ||resp.ErrorCode!=-1{
+		t.Fatal(ok,CallbackBeforeSendMsgCommand,"handle fail")
+	}
+
+	beforeHook=func(event *CallbackEvent)interface{}{
+		return nil
+	}
+	callbackHandler.RegisterBeforeHook(CallbackHandle(beforeHook))
+
+	resp,ok=callbackHandler.NewCallbackEvent(CallbackBeforeSendMsgCommand,up,[]byte(str)).Handle().(*BaseResponse)
+	if !ok ||resp.ActionStatus!=FAILStatus{
+		t.Fatal(ok,CallbackBeforeSendMsgCommand,"handle fail")
+	}
+
 	time.Sleep(time.Second)
 }
