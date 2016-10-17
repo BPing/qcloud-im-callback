@@ -11,7 +11,7 @@ type CallbackEvent struct {
 	CallbackCommand CallbackCommand
 
 	// 参数
-        URLParams URLParams
+        URLParams *URLParams
 
 	// 实体内容
 	Body []byte
@@ -22,7 +22,7 @@ type CallbackEvent struct {
 
 
 // 新建
-func NewCallbackEvent(cc CallbackCommand,up URLParams,body []byte )*CallbackEvent{
+func NewCallbackEvent(cc CallbackCommand,up *URLParams,body []byte )*CallbackEvent{
 	return &CallbackEvent{CallbackCommand:cc,URLParams:up,Body:body}
 }
 

@@ -3,6 +3,7 @@ package qcloud_im_callback
 import (
 	"github.com/BPing/Golib/producer_consumer"
 
+	"sync"
 )
 
 
@@ -29,6 +30,9 @@ type CallbackHandler struct {
 
 	//生产/消费 消费异步事件
 	producerConsumer *producerConsumer.Container
+
+	// CallbackEvent对象池，避免创建过多对象
+	eventPool *sync.Pool
 }
 
 // 事件处理信息和程序
@@ -45,11 +49,17 @@ type RouterInfo struct {
 	//   事件具体处理的程序。
 	//   如果同步处理，返回的数据将返回到客户端去，如果异步的话，将会忽略
 	Handle CallbackHandle
+
 }
 
 // 新建回调事件处理句柄
 func NewCallbackHandler(masterNum,msgEventLen int,defaultHandle CallbackHandle)(*CallbackHandler,error){
-	ch:=&CallbackHandler{router:make(map[CallbackCommand]RouterInfo),defaultHandle:defaultHandle}
+	ch:=&CallbackHandler{
+		router:make(map[CallbackCommand]RouterInfo),
+		defaultHandle:defaultHandle,
+		eventPool:&sync.Pool{New:func() interface{} {
+		     return NewCallbackEvent("",nil,nil)
+		}}}
 	err:=ch.InitProducerConsumer(masterNum,msgEventLen)
 	return ch,err
 }
@@ -138,15 +148,18 @@ func (ch *CallbackHandler) Handle(ce *CallbackEvent) interface{} {
 			}
 
 		} else {
+			defer ch.eventPool.Put(ce)
 			return ri.Handle(ce)
 		}
 
 	}
+	defer ch.eventPool.Put(ce)
 	return ch.defaultHandle(ce)
 }
 
 // producerConsumer消费事件时调用处理事件
 func (ch *CallbackHandler) handle(ce *CallbackEvent) {
+	defer ch.eventPool.Put(ce)
 	ri, ok := ch.Get(ce.CallbackCommand)
 	if ok && ri.Async {
 		ri.Handle(ce)
@@ -154,8 +167,11 @@ func (ch *CallbackHandler) handle(ce *CallbackEvent) {
 }
 
 // 新建事件
-func (ch *CallbackHandler) NewCallbackEvent(cc CallbackCommand, up URLParams, body []byte) *CallbackEvent {
-	ce := NewCallbackEvent(cc, up, body)
+func (ch *CallbackHandler) NewCallbackEvent(cc CallbackCommand, up *URLParams, body []byte) *CallbackEvent {
+	ce:=ch.eventPool.Get().(*CallbackEvent)
+	ce.CallbackCommand=cc
+	ce.URLParams=up
+	ce.Body=body
 	ce.Handler = ch
 	return ce
 }

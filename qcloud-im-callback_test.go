@@ -60,7 +60,7 @@ func TestFacade(t *testing.T){
 
 	// http请求中url后面参数，
 	// 实际应用中自行获取参数构成此结构体
-	up:=URLParams{
+	up:=&URLParams{
 		CallbackCommand:CallbackBeforeSendMsgCommand,
 		SdkAppid:"888888",
 		ContentType:"json",
@@ -104,7 +104,7 @@ func TestFacade(t *testing.T){
 		return nil
 	})
 
-	resp=Handle(CallbackAfterSendMsgCommand,up,[]byte(str))
+	resp=Handle(CallbackAfterSendMsgCommand,up.Clone(),[]byte(str))
 
 	if resp.(*BaseResponse).ActionStatus!=FAILStatus{
 		t.Fatal("test facade RegisterBeforeHook 1")
@@ -123,5 +123,6 @@ func TestFacade(t *testing.T){
 	RegisterBeforeHook(func(event *CallbackEvent)interface{}{
 		return nil
 	})
+
 }
 

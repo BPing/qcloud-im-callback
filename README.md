@@ -29,7 +29,7 @@ func main(){
 
 	// http请求中url后面参数，
 	// 实际应用中自行获取参数构成此结构体
-	up:=qcloud_im_callback.URLParams{
+	up:=&qcloud_im_callback.URLParams{
 		CallbackCommand:qcloud_im_callback.CallbackBeforeSendMsgCommand,
 		SdkAppid:"888888",
 		ContentType:"json",
@@ -84,14 +84,14 @@ func main(){
 因为不想耦合beego,所以就不提供beego定制化接口了。可以参考下面例子：
 ```go
     func (u *Controller) HandleEventsBeego() {
-    	up:=URLParams{
+    	up:=&qcloud_im_callback.URLParams{
     		SdkAppid:u.GetString("SdkAppid"),
-    		CallbackCommand:CallbackCommand(u.GetString("CallbackCommand")),
+    		CallbackCommand:qcloud_im_callback.CallbackCommand(u.GetString("CallbackCommand")),
     		ContentType:u.GetString("contenttype"),
     		ClientIP:u.GetString("ClientIP"),
-    		OptPlatform:OptPlatform(u.GetString("OptPlatform")),
+    		OptPlatform:qcloud_im_callback.OptPlatform(u.GetString("OptPlatform")),
     	}
-    	resp:=HandleEvents(CreateEvents(up.CallbackCommand,up,u.Ctx.Input.RequestBody))
+    	resp:=qcloud_im_callback.HandleEvents(qcloud_im_callback.CreateEvents(up.CallbackCommand,up,u.Ctx.Input.RequestBody))
     	u.Data["json"] = resp
     	u.ServeJSON()
     }

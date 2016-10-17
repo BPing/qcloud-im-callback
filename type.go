@@ -78,6 +78,11 @@ type URLParams struct {
 	OptPlatform OptPlatform
 }
 
+func (up *URLParams) Clone() *URLParams{
+	new_obj := (*up)
+	return &new_obj
+}
+
 // 基本应答包字段
 type BaseResponse struct {
 	// 请求处理的结果，

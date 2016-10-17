@@ -36,7 +36,7 @@ func TestHandler(t *testing.T){
 
 	})
 
-	up:=URLParams{
+	up:=&URLParams{
 		SdkAppid:"888888",
 		ContentType:"json",
 	}

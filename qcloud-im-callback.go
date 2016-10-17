@@ -43,11 +43,11 @@ func RegisterRouterInfo(cc CallbackCommand, ri RouterInfo){
 	defaultCallbackHandler.Register(cc,ri)
 }
 
-func Handle(cc CallbackCommand, up URLParams, body []byte)interface{}{
+func Handle(cc CallbackCommand, up *URLParams, body []byte)interface{}{
         return defaultCallbackHandler.NewCallbackEvent(cc,up,body).Handle()
 }
 
-func CreateEvents(cc CallbackCommand, up URLParams, body []byte)*CallbackEvent{
+func CreateEvents(cc CallbackCommand, up *URLParams, body []byte)*CallbackEvent{
 	return defaultCallbackHandler.NewCallbackEvent(cc,up,body)
 }
 
@@ -63,7 +63,7 @@ func HandleEvents(event *CallbackEvent)interface{}{
 //    对于body内容目前做长度限制，具体查看变量BodyMaxLen
 func HandleEventsHttp(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
-	up:=URLParams{
+	up:=&URLParams{
 		SdkAppid:getParam("SdkAppid",r),
 		CallbackCommand:CallbackCommand(getParam("CallbackCommand",r)),
 		ContentType:getParam("contenttype",r),
@@ -97,7 +97,7 @@ func readBody(r *http.Request)[]byte{
 //----------------------------------------------------------------------------------------------------------------------
 //
 //func (u *Controller) HandleEventsBeego() {
-//	up:=URLParams{
+//	up:=&URLParams{
 //		SdkAppid:u.GetString("SdkAppid"),
 //		CallbackCommand:CallbackCommand(u.GetString("CallbackCommand")),
 //		ContentType:u.GetString("contenttype"),
