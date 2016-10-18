@@ -1,4 +1,4 @@
-# qcloud_im_callback [![Build Status](https://travis-ci.org/BPing/qcloud-im-callback.svg?branch=master)](https://travis-ci.org/BPing/qcloud-im-callback) [![Coverage Status](https://coveralls.io/repos/github/BPing/qcloud-im-callback/badge.svg)](https://coveralls.io/github/BPing/qcloud-im-callback)
+# qcloud_im_callback [![Build Status](https://travis-ci.org/BPing/qcloud-im-callback.svg?branch=dev)](https://travis-ci.org/BPing/qcloud-im-callback) [![Coverage Status](https://coveralls.io/repos/github/BPing/qcloud-im-callback/badge.svg?branch=dev)](https://coveralls.io/github/BPing/qcloud-im-callback?branch=dev)
 腾讯IM回调处理服务
 
 
