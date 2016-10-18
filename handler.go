@@ -2,7 +2,6 @@ package qcloud_im_callback
 
 import (
 	"github.com/BPing/Golib/producer_consumer"
-
 	"sync"
 )
 
@@ -157,7 +156,7 @@ func (ch *CallbackHandler) Handle(ce *CallbackEvent) interface{} {
 	return ch.defaultHandle(ce)
 }
 
-// producerConsumer消费事件时调用处理事件
+// producerConsumer消费事件时调用
 func (ch *CallbackHandler) handle(ce *CallbackEvent) {
 	defer ch.eventPool.Put(ce)
 	ri, ok := ch.Get(ce.CallbackCommand)

@@ -108,3 +108,18 @@ func readBody(r *http.Request)[]byte{
 //	u.Data["json"] = resp
 //	u.ServeJSON()
 //}
+//
+//// 或者
+//
+//func HandleCallbackEventsBeego(controller beego.Controller) {
+//	up := &qcloud_im_callback.URLParams{
+//		SdkAppid:        controller.GetString("SdkAppid"),
+//		CallbackCommand: qcloud_im_callback.CallbackCommand(controller.GetString("CallbackCommand")),
+//		ContentType:     controller.GetString("contenttype"),
+//		ClientIP:        controller.GetString("ClientIP"),
+//		OptPlatform:     qcloud_im_callback.OptPlatform(controller.GetString("OptPlatform")),
+//	}
+//	resp := qcloud_im_callback.Handle(up.CallbackCommand, up, controller.Ctx.Input.RequestBody)
+//	controller.Data["json"] = resp
+//	controller.ServeJSON()
+//}

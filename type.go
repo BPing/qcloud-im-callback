@@ -10,6 +10,12 @@ type OptPlatform string
 // 请求处理的结果，OK表示处理成功，FAIL表示失败。
 type ActionStatus string
 
+// 私有群（Private）：适用于较为私密的聊天场景，群组资料不公开，只能通过邀请的方式加入，类似于微信群。
+// 公开群（Public）：适用于公开群组，具有较为严格的管理机制、准入机制，类似于QQ群。
+// 聊天室（ChatRoom）：群成员可以随意进出，组织较为松散。
+// 互动直播聊天室（AVChatRoom）：适用于互动直播场景，管理上与聊天室相似，但群成员人数无上限；支持以游客身份（不登录）接收消息。
+type GroupType string
+
 const (
 	//-- 单发消息 --
 	CallbackBeforeSendMsgCommand = CallbackCommand("C2C.CallbackBeforeSendMsg") // 发消息之前回调
@@ -49,6 +55,12 @@ const (
 	// 请求处理结果
 	OkStatus   = ActionStatus("OK")
 	FAILStatus = ActionStatus("FAIL")
+
+	// 群组系统当前提供四种默认群组形态
+	PrivateGroupType    = GroupType("Private")
+	PublicGroupType     = GroupType("Public")
+	ChatRoomGroupType   = GroupType("ChatRoom")
+	AVChatRoomGroupType = GroupType("AVChatRoom")
 )
 
 // 腾讯云在发起回调时，会在APP提供的URL之后增加如下几个参数：
@@ -78,7 +90,7 @@ type URLParams struct {
 	OptPlatform OptPlatform
 }
 
-func (up *URLParams) Clone() *URLParams{
+func (up *URLParams) Clone() *URLParams {
 	new_obj := (*up)
 	return &new_obj
 }
@@ -109,8 +121,22 @@ type SendMsgBody struct {
 	BaseBody
 	From_Account string
 	To_Account   string
-	MsgBody      []struct {
+	MsgBody      []struct {  // 消息体，参见TIMMessage消息对象
 		MsgType    string
 		MsgContent map[string]interface{}
 	}
+}
+
+// 群基础资料
+type GroupInfo struct {
+	GroupId string
+	Type    GroupType
+}
+
+// 群聊消息
+type GroupSendMsgBody struct {
+	SendMsgBody
+	GroupInfo
+	Operator_Account string  //请求的发起者
+	Random string // 随机数
 }
