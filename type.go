@@ -121,7 +121,7 @@ type SendMsgBody struct {
 	BaseBody
 	From_Account string
 	To_Account   string
-	MsgBody      []struct {  // 消息体，参见TIMMessage消息对象
+	MsgBody      []struct { // 消息体，参见TIMMessage消息对象
 		MsgType    string
 		MsgContent map[string]interface{}
 	}
@@ -137,6 +137,6 @@ type GroupInfo struct {
 type GroupSendMsgBody struct {
 	SendMsgBody
 	GroupInfo
-	Operator_Account string  //请求的发起者
-	Random string // 随机数
+	Operator_Account string //请求的发起者
+	Random           string // 随机数
 }

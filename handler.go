@@ -1,10 +1,10 @@
 package qcloud_im_callback
 
 import (
-	"github.com/BPing/Golib/producer_consumer"
 	"sync"
-)
 
+	"github.com/BPing/Golib/producer_consumer"
+)
 
 // 具体事件处理程序
 type CallbackHandle func(*CallbackEvent) interface{}
@@ -25,7 +25,7 @@ type CallbackHandler struct {
 	// 开始处理事件之前的钩子
 	//  如果返回数据不为nil，代表结束处理事件，
 	//  否则，继续处理事件
-	beforeHook  CallbackHandle
+	beforeHook CallbackHandle
 
 	//生产/消费 消费异步事件
 	producerConsumer *producerConsumer.Container
@@ -48,41 +48,43 @@ type RouterInfo struct {
 	//   事件具体处理的程序。
 	//   如果同步处理，返回的数据将返回到客户端去，如果异步的话，将会忽略
 	Handle CallbackHandle
-
 }
 
 // 新建回调事件处理句柄
-func NewCallbackHandler(masterNum,msgEventLen int,defaultHandle CallbackHandle)(*CallbackHandler,error){
-	ch:=&CallbackHandler{
-		router:make(map[CallbackCommand]RouterInfo),
-		defaultHandle:defaultHandle,
-		eventPool:&sync.Pool{New:func() interface{} {
-		     return NewCallbackEvent("",nil,nil)
+func NewCallbackHandler(masterNum, msgEventLen int, defaultHandle CallbackHandle) (*CallbackHandler, error) {
+	ch := &CallbackHandler{
+		router:        make(map[CallbackCommand]RouterInfo),
+		defaultHandle: defaultHandle,
+		eventPool: &sync.Pool{New: func() interface{} {
+			return NewCallbackEvent("", nil, nil)
 		}}}
-	err:=ch.InitProducerConsumer(masterNum,msgEventLen)
-	return ch,err
+	err := ch.InitProducerConsumer(masterNum, msgEventLen)
+	return ch, err
 }
 
 //
 // @masterNum 主消费线程数目,必须大于等于1
 // @chanLen   消费信息（事件）队列长度
-func (ch *CallbackHandler) InitProducerConsumer(masterNum,msgEventLen int)error{
-	pc,err:=producerConsumer.NewContainerPC(msgEventLen,func(msg producerConsumer.Message){
+func (ch *CallbackHandler) InitProducerConsumer(masterNum, msgEventLen int) error {
+	pc, err := producerConsumer.NewContainerPC(msgEventLen, func(msg producerConsumer.IMessage) {
 		// 处理异步延后处理消息（事件）
-		event:=msg.Body.(*CallbackEvent)
-		event.handle()
+		event ,ok:=msg.(*CallbackEvent)
+		if ok {
+			event.handle()
+		}
+
 	})
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 
-	ch.producerConsumer=pc
+	ch.producerConsumer = pc
 
-	if masterNum<1{
-		masterNum=1
+	if masterNum < 1 {
+		masterNum = 1
 	}
 
-	for i:=0;i<masterNum;i++{
+	for i := 0; i < masterNum; i++ {
 		ch.producerConsumer.Consume()
 	}
 	return nil
@@ -96,13 +98,13 @@ func (ch *CallbackHandler) Register(cc CallbackCommand, ri RouterInfo) *Callback
 }
 
 // 注册默认处理程序
-func (ch *CallbackHandler) RegisterDefaultHandle(callbackHandle CallbackHandle)*CallbackHandler {
+func (ch *CallbackHandler) RegisterDefaultHandle(callbackHandle CallbackHandle) *CallbackHandler {
 	ch.defaultHandle = callbackHandle
 	return ch
 }
 
 // 注册钩子
-func (ch *CallbackHandler) RegisterBeforeHook(beforeHook CallbackHandle)*CallbackHandler {
+func (ch *CallbackHandler) RegisterBeforeHook(beforeHook CallbackHandle) *CallbackHandler {
 	ch.beforeHook = beforeHook
 	return ch
 }
@@ -125,30 +127,39 @@ func (ch *CallbackHandler) Get(cc CallbackCommand) (RouterInfo, bool) {
 	return ri, ok
 }
 
+// 事件队列处理协程数目情况
+func (ch *CallbackHandler) ConsumerNumGoroutine() (master, assistActive int64) {
+	if nil != ch.producerConsumer {
+		master, assistActive = ch.producerConsumer.NumGoroutine()
+	}
+	return
+}
+
 // 处理事件
 func (ch *CallbackHandler) Handle(ce *CallbackEvent) interface{} {
-	if ch.beforeHook!=nil {
-		hr:=ch.beforeHook(ce)
-		if nil!=hr {
+	if ch.beforeHook != nil {
+		hr := ch.beforeHook(ce)
+		if nil != hr {
 			// 如果钩子有返回数据则代表结束
 			return hr
 		}
 	}
+
 	ri, ok := ch.Get(ce.CallbackCommand)
 	if ok {
 		if ri.Async {
-			if nil!=ch.producerConsumer{
+			if nil != ch.producerConsumer {
 				// 放进消费队列延后处理
-				msg,_:=producerConsumer.NewMessage("CallbackEvent",ce)
-				ch.producerConsumer.Produce(msg)
+				ch.producerConsumer.Produce(ce)
 			}
 			if nil != ri.AsyncResponse {
 				return ri.AsyncResponse
 			}
-
+			return ch.defaultHandle(ce)
 		} else {
 			defer ch.eventPool.Put(ce)
-			return ri.Handle(ce)
+			resp := ri.Handle(ce)
+			return resp
 		}
 
 	}
@@ -167,10 +178,10 @@ func (ch *CallbackHandler) handle(ce *CallbackEvent) {
 
 // 新建事件
 func (ch *CallbackHandler) NewCallbackEvent(cc CallbackCommand, up *URLParams, body []byte) *CallbackEvent {
-	ce:=ch.eventPool.Get().(*CallbackEvent)
-	ce.CallbackCommand=cc
-	ce.URLParams=up
-	ce.Body=body
+	ce := ch.eventPool.Get().(*CallbackEvent)
+	ce.CallbackCommand = cc
+	ce.URLParams = up
+	ce.Body = body
 	ce.Handler = ch
 	return ce
 }

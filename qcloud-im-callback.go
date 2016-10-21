@@ -1,14 +1,14 @@
 package qcloud_im_callback
 
 import (
-	"net/http"
+	"encoding/json"
 	"io"
 	"io/ioutil"
-	"encoding/json"
+	"net/http"
 )
 
 var (
-	BodyMaxLen int64=2048 //请求body实体内容限制长度值
+	BodyMaxLen int64 = 2048 //请求body实体内容限制长度值
 )
 
 // 默认的
@@ -16,44 +16,48 @@ var (
 //   用户可以通过RegisterDefaultCallbackHandler重新替换默认句柄的
 var defaultCallbackHandler *CallbackHandler
 
-func init(){
-	defaultHandle:=func(event *CallbackEvent)interface{}{
-		return &BaseResponse{ActionStatus:OkStatus,ErrorCode:0}
+func init() {
+	defaultHandle := func(event *CallbackEvent) interface{} {
+		return &BaseResponse{ActionStatus: OkStatus, ErrorCode: 0}
 	}
-	RegisterDefaultCallbackHandler(1,50,defaultHandle)
+	RegisterDefaultCallbackHandler(1, 50, defaultHandle)
 }
 
-func RegisterDefaultCallbackHandler(masterNum,msgEventLen int,defaultHandle func(*CallbackEvent) interface{})(err error){
-	temp,err:=NewCallbackHandler(masterNum,msgEventLen,CallbackHandle(defaultHandle))
-	if err==nil{
-		defaultCallbackHandler=temp
+func RegisterDefaultCallbackHandler(masterNum, msgEventLen int, defaultHandle func(*CallbackEvent) interface{}) (err error) {
+	temp, err := NewCallbackHandler(masterNum, msgEventLen, CallbackHandle(defaultHandle))
+	if err == nil {
+		defaultCallbackHandler = temp
 	}
 	return
 }
 
-func RegisterDefaultHandle(defaultHandle func(*CallbackEvent) interface{}){
-         defaultCallbackHandler.RegisterDefaultHandle(CallbackHandle(defaultHandle))
+func RegisterDefaultHandle(defaultHandle func(*CallbackEvent) interface{}) {
+	defaultCallbackHandler.RegisterDefaultHandle(CallbackHandle(defaultHandle))
 }
 
-func RegisterBeforeHook(defaultHandle func(*CallbackEvent) interface{}){
-         defaultCallbackHandler.RegisterBeforeHook(CallbackHandle(defaultHandle))
+func RegisterBeforeHook(defaultHandle func(*CallbackEvent) interface{}) {
+	defaultCallbackHandler.RegisterBeforeHook(CallbackHandle(defaultHandle))
 }
 
-func RegisterRouterInfo(cc CallbackCommand, ri RouterInfo){
-	defaultCallbackHandler.Register(cc,ri)
+func RegisterRouterInfo(cc CallbackCommand, ri RouterInfo) {
+	defaultCallbackHandler.Register(cc, ri)
 }
 
-func Handle(cc CallbackCommand, up *URLParams, body []byte)interface{}{
-        return defaultCallbackHandler.NewCallbackEvent(cc,up,body).Handle()
+func Handle(cc CallbackCommand, up *URLParams, body []byte) interface{} {
+	return defaultCallbackHandler.NewCallbackEvent(cc, up, body).Handle()
 }
 
-func CreateEvents(cc CallbackCommand, up *URLParams, body []byte)*CallbackEvent{
-	return defaultCallbackHandler.NewCallbackEvent(cc,up,body)
+func CreateEvents(cc CallbackCommand, up *URLParams, body []byte) *CallbackEvent {
+	return defaultCallbackHandler.NewCallbackEvent(cc, up, body)
 }
 
-func HandleEvents(event *CallbackEvent)interface{}{
+func HandleEvents(event *CallbackEvent) interface{} {
 	return event.Handle()
 
+}
+
+func ConsumerNumGoroutine() (int64, int64) {
+	return defaultCallbackHandler.ConsumerNumGoroutine()
 }
 
 // for std（raw） http
@@ -61,35 +65,35 @@ func HandleEvents(event *CallbackEvent)interface{}{
 
 // 原始http请求处理
 //    对于body内容目前做长度限制，具体查看变量BodyMaxLen
-func HandleEventsHttp(w http.ResponseWriter, r *http.Request){
+func HandleEventsHttp(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	up:=&URLParams{
-		SdkAppid:getParam("SdkAppid",r),
-		CallbackCommand:CallbackCommand(getParam("CallbackCommand",r)),
-		ContentType:getParam("contenttype",r),
-		ClientIP:getParam("ClientIP",r),
-		OptPlatform:OptPlatform(getParam("OptPlatform",r)),
+	up := &URLParams{
+		SdkAppid:        getParam("SdkAppid", r),
+		CallbackCommand: CallbackCommand(getParam("CallbackCommand", r)),
+		ContentType:     getParam("contenttype", r),
+		ClientIP:        getParam("ClientIP", r),
+		OptPlatform:     OptPlatform(getParam("OptPlatform", r)),
 	}
-	resp:=HandleEvents(CreateEvents(up.CallbackCommand,up,readBody(r)))
-	data,_:=json.Marshal(resp)
+	resp := HandleEvents(CreateEvents(up.CallbackCommand, up, readBody(r)))
+	data, _ := json.Marshal(resp)
 	w.Write(data)
 }
 
 // 获取url附带的参数
-func getParam(key string,r *http.Request)string{
+func getParam(key string, r *http.Request) string {
 	if len(r.Form[key]) > 0 {
 		return r.Form[key][0]
 	}
-      return ""
+	return ""
 }
 
 // 读取请求body内容
 //  对于body内容目前做长度限制，具体查看变量BodyMaxLen
-func readBody(r *http.Request)[]byte{
+func readBody(r *http.Request) []byte {
 	safe := &io.LimitedReader{R: r.Body, N: BodyMaxLen}
 	reqBody, _ := ioutil.ReadAll(safe)
 	r.Body.Close()
-        return reqBody
+	return reqBody
 }
 
 // Beego框架例子

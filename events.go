@@ -7,11 +7,11 @@ import (
 
 // 事件实体
 type CallbackEvent struct {
-        // 事件标识命令
+	// 事件标识命令
 	CallbackCommand CallbackCommand
 
 	// 参数
-        URLParams *URLParams
+	URLParams *URLParams
 
 	// 实体内容
 	Body []byte
@@ -20,10 +20,9 @@ type CallbackEvent struct {
 	Handler *CallbackHandler
 }
 
-
 // 新建
-func NewCallbackEvent(cc CallbackCommand,up *URLParams,body []byte )*CallbackEvent{
-	return &CallbackEvent{CallbackCommand:cc,URLParams:up,Body:body}
+func NewCallbackEvent(cc CallbackCommand, up *URLParams, body []byte) *CallbackEvent {
+	return &CallbackEvent{CallbackCommand: cc, URLParams: up, Body: body}
 }
 
 // 将body字节内容以JSON格式转化
@@ -36,7 +35,7 @@ func (ce *CallbackEvent) ToJSON(v interface{}) error {
 
 // @see CallbackHandler.Handle()
 func (ce *CallbackEvent) Handle() interface{} {
-	if nil!=ce.Handler {
+	if nil != ce.Handler {
 		return ce.Handler.Handle(ce)
 	}
 	return nil
@@ -44,7 +43,12 @@ func (ce *CallbackEvent) Handle() interface{} {
 
 // @see CallbackHandler.handle()
 func (ce *CallbackEvent) handle() {
-	if nil!=ce.Handler {
+	if nil != ce.Handler {
 		ce.Handler.handle(ce)
 	}
+}
+
+// 实现消息接口
+func (ce *CallbackEvent) Id()string {
+          return "CallbackEvent"
 }
