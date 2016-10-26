@@ -116,7 +116,7 @@ func (ch *CallbackHandler) InitProducerConsumer(masterNum, msgEventLen int, pcTy
 			return json.Marshal(msg.(*CallbackEvent))
 		}
 		pcConf.Unmarshal = func(msgByte []byte) (producerConsumer.IMessage, error) {
-			msg := &CallbackEvent{}
+			msg := ch.eventPool.Get().(*CallbackEvent)
 			err := json.Unmarshal(msgByte, msg)
 			if msg != nil {
 				msg.Handler = ch
