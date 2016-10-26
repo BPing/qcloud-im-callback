@@ -98,6 +98,38 @@ func main(){
 ```
 
 
+### cache队列（如：reids）
+
+如果你想用redis第三方缓存工具来传递信息，你可以通过以下方法初始化。如果没有指定cache队列类型，则统一默认为channel缓冲队列类型
+
+* 更改默认
+
+```go
+    qcloud_im_callback.RegisterDefaultNewCallbackHandlerWithCache(masterNum, msgEventLen int, defaultHandle func(*CallbackEvent) interface{},cache qcloud_im_callback.ICache) (err error)   
+```
+
+* 新建
+
+```go
+    qcloud_im_callback.NewCallbackHandlerWithCache(masterNum, msgEventLen int, defaultHandle CallbackHandle,cache qcloud_im_callback.ICache) (*qcloud_im_callback.CallbackHandler, error)  
+```
+
+> 请注意，必须实现qcloud_im_callback.ICache接口,具体如下：
+
+```go
+    // 缓存Cache接口
+   	type ICache interface {
+   		// BLPOP key1 timeout(秒)
+   		// 移出并获取列表的第一个元素，
+   		// 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+   		BLPop(key string,timeout int64)(map[string]string, error)
+   		// 在列表尾部中添加一个或多个值
+   		RPush(key string,values ... interface{}) (int64, error)
+   		// 获取列表长度
+   		LLen(key string) (int64, error)
+   	}
+```
+
 # 文档
 
 https://godoc.org/github.com/BPing/qcloud-im-callback [![GoDoc](https://godoc.org/github.com/BPing/qcloud-im-callback?status.svg)](https://godoc.org/github.com/BPing/qcloud-im-callback)
