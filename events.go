@@ -8,13 +8,13 @@ import (
 // 事件实体
 type CallbackEvent struct {
 	// 事件标识命令
-	CallbackCommand CallbackCommand
+	CallbackCommand CallbackCommand `json:"CallbackCommand"`
 
 	// 参数
-	URLParams *URLParams
+	URLParams *URLParams `json:"URLParams"`
 
 	// 实体内容
-	Body []byte
+	Body []byte `json:"Body"`
 
 	// 句柄
 	Handler *CallbackHandler

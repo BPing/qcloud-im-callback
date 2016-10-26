@@ -68,16 +68,16 @@ const (
 type URLParams struct {
 
 	// APP在云通讯申请的Appid。
-	SdkAppid string
+	SdkAppid string  `json:"SdkAppid"`
 
 	// 回调命令字。
-	CallbackCommand CallbackCommand
+	CallbackCommand CallbackCommand `json:"CallbackCommand"`
 
 	//固定为：json。对应：contenttype
-	ContentType string
+	ContentType string  `json:"ContentType"`
 
 	// 客户端IP地址
-	ClientIP string
+	ClientIP string  `json:"ClientIP"`
 
 	// 客户端平台。对应不同的平台类型，
 	// 可能的取值有： RESTAPI（使用REST API发送请求）、
@@ -87,7 +87,7 @@ type URLParams struct {
 	//              Windows、
 	//              Mac、
 	//              Unkown（使用未知类型的设备发送请求）。
-	OptPlatform OptPlatform
+	OptPlatform OptPlatform  `json:"OptPlatform"`
 }
 
 func (up *URLParams) Clone() *URLParams {
@@ -140,3 +140,4 @@ type GroupSendMsgBody struct {
 	Operator_Account string //请求的发起者
 	Random           string // 随机数
 }
+
