@@ -3,6 +3,7 @@ package qcloud_im_callback
 import (
 	"sync"
 
+	"encoding/json"
 	"github.com/BPing/Golib/producer_consumer"
 )
 
@@ -28,7 +29,7 @@ type CallbackHandler struct {
 	beforeHook CallbackHandle
 
 	//生产/消费 消费异步事件
-	producerConsumer *producerConsumer.Container
+	producerConsumer producerConsumer.IContainer
 
 	// CallbackEvent对象池，避免创建过多对象
 	eventPool *sync.Pool
@@ -50,7 +51,7 @@ type RouterInfo struct {
 	Handle CallbackHandle
 }
 
-// 新建回调事件处理句柄
+// 新建回调事件处理句柄(底层消费队列为channel缓冲队列)
 func NewCallbackHandler(masterNum, msgEventLen int, defaultHandle CallbackHandle) (*CallbackHandler, error) {
 	ch := &CallbackHandler{
 		router:        make(map[CallbackCommand]RouterInfo),
@@ -58,22 +59,76 @@ func NewCallbackHandler(masterNum, msgEventLen int, defaultHandle CallbackHandle
 		eventPool: &sync.Pool{New: func() interface{} {
 			return NewCallbackEvent("", nil, nil)
 		}}}
-	err := ch.InitProducerConsumer(masterNum, msgEventLen)
+	err := ch.InitProducerConsumer(masterNum, msgEventLen, "channel", nil)
+	return ch, err
+}
+
+// 缓存Cache接口
+//   封装producerConsumer.ICache
+type ICache interface {
+	producerConsumer.ICache
+}
+
+// 新建回调事件处理句柄(底层消费队列为自定义Cache队列)
+// @cache ICache
+//       // 缓存Cache接口
+	/*type ICache interface {
+		// BLPOP key1 timeout(秒)
+		// 移出并获取列表的第一个元素，
+		// 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+		BLPop(key string,timeout int64)(map[string]string, error)
+		// 在列表尾部中添加一个或多个值
+		RPush(key string,values ... interface{}) (int64, error)
+		// 获取列表长度
+		LLen(key string) (int64, error)
+	}*/
+//
+func NewCallbackHandlerWithCache(masterNum, msgEventLen int, defaultHandle CallbackHandle,cache ICache) (*CallbackHandler, error) {
+	ch := &CallbackHandler{
+		router:        make(map[CallbackCommand]RouterInfo),
+		defaultHandle: defaultHandle,
+		eventPool: &sync.Pool{New: func() interface{} {
+			return NewCallbackEvent("", nil, nil)
+		}}}
+	err := ch.InitProducerConsumer(masterNum, msgEventLen, "cache", cache)
 	return ch, err
 }
 
 //
 // @masterNum 主消费线程数目,必须大于等于1
 // @chanLen   消费信息（事件）队列长度
-func (ch *CallbackHandler) InitProducerConsumer(masterNum, msgEventLen int) error {
-	pc, err := producerConsumer.NewContainerPC(msgEventLen, func(msg producerConsumer.IMessage) {
-		// 处理异步延后处理消息（事件）
-		event ,ok:=msg.(*CallbackEvent)
-		if ok {
-			event.handle()
-		}
+func (ch *CallbackHandler) InitProducerConsumer(masterNum, msgEventLen int, pcType string, cache producerConsumer.ICache) error {
+	pcConf := producerConsumer.Config{
+		MsgLen: int64(msgEventLen),
+		ConsumeFunc: func(msg producerConsumer.IMessage) {
+			// 处理异步延后处理消息（事件）
+			event, ok := msg.(*CallbackEvent)
+			if ok {
+				event.handle()
+			}
 
-	})
+		},
+	}
+	if pcType == "cache" {
+		pcConf.Type = producerConsumer.CacheType
+		pcConf.CacheInstance = cache
+		pcConf.Marshal = func(msg producerConsumer.IMessage) ([]byte, error) {
+			return json.Marshal(msg.(*CallbackEvent))
+		}
+		pcConf.Unmarshal = func(msgByte []byte) (producerConsumer.IMessage, error) {
+			msg := ch.eventPool.Get().(*CallbackEvent)
+			err := json.Unmarshal(msgByte, msg)
+			if msg != nil {
+				msg.Handler = ch
+			}
+			return msg, err
+		}
+	} else {
+		// 默认为ChannelType
+		pcConf.Type = producerConsumer.ChannelType
+	}
+
+	pc, err := producerConsumer.NewContainer(pcConf)
 	if err != nil {
 		return err
 	}

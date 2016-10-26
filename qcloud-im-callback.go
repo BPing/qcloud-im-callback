@@ -12,8 +12,10 @@ var (
 )
 
 // 默认的
-//   系统初始实例的的事件队列长度为50，主要消费线程为1，默认处理返回操作成功结构
-//   用户可以通过RegisterDefaultCallbackHandler重新替换默认句柄的
+//   系统初始实例的的事件队列长度为50，主要消费线程为1，
+//   默认处理返回操作成功结构信息。默认为channel缓冲队列。
+//   用户可以通过RegisterDefaultCallbackHandler
+//   或者RegisterDefaultNewCallbackHandlerWithCache重新替换默认句柄
 var defaultCallbackHandler *CallbackHandler
 
 func init() {
@@ -25,6 +27,14 @@ func init() {
 
 func RegisterDefaultCallbackHandler(masterNum, msgEventLen int, defaultHandle func(*CallbackEvent) interface{}) (err error) {
 	temp, err := NewCallbackHandler(masterNum, msgEventLen, CallbackHandle(defaultHandle))
+	if err == nil {
+		defaultCallbackHandler = temp
+	}
+	return
+}
+
+func RegisterDefaultNewCallbackHandlerWithCache(masterNum, msgEventLen int, defaultHandle func(*CallbackEvent) interface{},cache ICache) (err error) {
+	temp, err := NewCallbackHandlerWithCache(masterNum, msgEventLen, CallbackHandle(defaultHandle),cache)
 	if err == nil {
 		defaultCallbackHandler = temp
 	}
