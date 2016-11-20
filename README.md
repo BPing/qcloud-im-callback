@@ -1,6 +1,8 @@
 # qcloud_im_callback [![Build Status](https://travis-ci.org/BPing/qcloud-im-callback.svg?branch=dev)](https://travis-ci.org/BPing/qcloud-im-callback) [![Coverage Status](https://coveralls.io/repos/github/BPing/qcloud-im-callback/badge.svg?branch=dev)](https://coveralls.io/github/BPing/qcloud-im-callback?branch=dev)
 腾讯IM回调处理服务
 
+# 处理流程
+![Alt text](https://www.processon.com/chart_image/5831a7abe4b05594f5194d15.png)
 
 # 快速开始
 
