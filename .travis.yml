@@ -6,7 +6,7 @@ go:
 install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
-  - go get github.com/BPing/Golib/producer_consumer
+  - go get github.com/BPing/go-toolkit/producer_consumer
 
 script:
   - go build  github.com/BPing/qcloud-im-callback

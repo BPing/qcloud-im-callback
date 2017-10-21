@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"encoding/json"
-	"github.com/BPing/Golib/producer_consumer"
+	"github.com/BPing/go-toolkit/producer_consumer"
 )
 
 // 具体事件处理程序
